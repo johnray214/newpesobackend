@@ -269,6 +269,9 @@ Route::middleware(['auth:jobseeker', \App\Http\Middleware\EnsureJobseeker::class
         ->where('type', 'resume|certificate|clearance');
     Route::post('/profile/avatar', [JobseekerProfileController::class, 'uploadAvatar']);
     Route::get('/profile/avatar', [JobseekerProfileController::class, 'avatar']);
+    
+    // Satisfaction Rating
+    Route::post('/satisfaction-rating', [JobseekerProfileController::class, 'submitSatisfactionRating']);
 
     // Skills catalog for jobseekers (stores skill_id selections)
     Route::get('/skills', [JobseekerSkillsController::class, 'index']);

@@ -15,6 +15,7 @@ class Jobseeker extends Authenticatable
 
     protected $fillable = [
         'first_name',
+        'middle_initial',
         'last_name',
         'email',
         'email_verified_at',
@@ -46,6 +47,7 @@ class Jobseeker extends Authenticatable
         'latitude',
         'longitude',
         'is_onboarding_done',
+        'has_received_satisfaction_survey',
         'status',
     ];
 
@@ -61,15 +63,32 @@ class Jobseeker extends Authenticatable
         'email_verified_at' => 'datetime',
         'otp_expires_at' => 'datetime',
         'otp_resend_cooldown_until' => 'datetime',
-        'date_of_birth' => 'date',
         'is_onboarding_done' => 'boolean',
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
     ];
 
+    public function getMiddleInitialAttribute($value)
+    {
+        if (is_string($value) && strlen($value) == 1) {
+            return $value . '.';
+        }
+        return $value;
+    }
+
+    public function setMiddleInitialAttribute($value)
+    {
+        // Store only the character if it has a dot
+        if (is_string($value) && strlen($value) == 2 && substr($value, -1) === '.') {
+            $this->attributes['middle_initial'] = substr($value, 0, 1);
+        } else {
+            $this->attributes['middle_initial'] = $value;
+        }
+    }
+
     public function getFullNameAttribute(): string
     {
-        return $this->first_name . ' ' . $this->last_name;
+        return trim($this->first_name . ' ' . ($this->middle_initial ? $this->middle_initial . '. ' : '') . $this->last_name);
     }
 
     public function skills()
@@ -89,7 +108,7 @@ class Jobseeker extends Authenticatable
 
     public function fullName(): string
     {
-        return $this->first_name . ' ' . $this->last_name;
+        return trim($this->first_name . ' ' . ($this->middle_initial ? $this->middle_initial . '. ' : '') . $this->last_name);
     }
 
     public function hasVerifiedEmail(): bool

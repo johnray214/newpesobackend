@@ -282,6 +282,28 @@ class EmployerApplicationController extends Controller
                 'recipient_id'    => $jobseeker->id,
                 'read_at'         => null,
             ]);
+
+            if (($newStatus === 'hired' || $newStatus === 'rejected') && !$jobseeker->has_received_satisfaction_survey) {
+                $surveyNotification = Notification::create([
+                    'subject'        => 'Rate your application experience',
+                    'message'        => 'How satisfied are you with the application process on PESO Connect?',
+                    'type'           => 'satisfaction_survey',
+                    'recipients'     => 'jobseekers',
+                    'scheduled_at'   => null,
+                    'sent_at'        => now(),
+                    'status'         => 'sent',
+                    'created_by'     => $employer->id, // Or null if system
+                ]);
+
+                NotificationRead::create([
+                    'notification_id' => $surveyNotification->id,
+                    'recipient_type'  => 'jobseeker',
+                    'recipient_id'    => $jobseeker->id,
+                    'read_at'         => null,
+                ]);
+
+                $jobseeker->update(['has_received_satisfaction_survey' => true]);
+            }
         }
 
         return response()->json([

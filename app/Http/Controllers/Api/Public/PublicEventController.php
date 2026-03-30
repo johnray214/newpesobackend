@@ -22,7 +22,7 @@ class PublicEventController extends Controller
         if ($status) {
             $query->where('status', $status);
         } else {
-            $query->whereIn('status', ['upcoming', 'ongoing', 'completed']);
+            $query->whereIn('status', ['upcoming', 'ongoing']);
         }
 
         $events = $query

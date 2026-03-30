@@ -39,6 +39,7 @@ class JobseekerAuthController extends Controller
     {
         $validated = $request->validate([
             'first_name' => 'required|string|max:100',
+            'middle_initial' => 'nullable|string|max:5',
             'last_name' => 'required|string|max:100',
             'email' => 'required|email|max:191',
             'password' => JobseekerPassword::createRules(),

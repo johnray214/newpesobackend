@@ -27,6 +27,7 @@ class JobseekerProfileController extends Controller
         
         $validated = $request->validate([
             'first_name' => 'sometimes|string|max:100',
+            'middle_initial' => 'sometimes|nullable|string|max:5',
             'last_name' => 'sometimes|string|max:100',
             'contact' => 'sometimes|nullable|string|max:20',
             'address' => 'sometimes|nullable|string|max:500',
@@ -308,6 +309,27 @@ class JobseekerProfileController extends Controller
 
         return response()->file($fullPath, [
             'Content-Disposition' => 'inline; filename="'.basename($path).'"',
+        ]);
+    }
+
+    public function submitSatisfactionRating(Request $request)
+    {
+        $validated = $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+        ]);
+
+        $jobseeker = $request->user();
+
+        \Illuminate\Support\Facades\DB::table('satisfaction_ratings')->insert([
+            'jobseeker_id' => $jobseeker->id,
+            'rating' => $validated['rating'],
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Satisfaction rating submitted successfully',
         ]);
     }
 }
