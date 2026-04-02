@@ -25,12 +25,19 @@ class EmployerApplicationController extends Controller
             $search = $request->search;
             $query->whereHas('jobseeker', function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%");
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$search}%"]);
             });
         }
         
         if ($request->has('status')) {
             $query->where('status', $request->status);
+        }
+        
+        if ($request->has('job_title')) {
+            $query->whereHas('jobListing', function ($q) use ($request) {
+                $q->where('title', $request->job_title);
+            });
         }
         
         if ($request->has('job_listing_id')) {
@@ -43,7 +50,13 @@ class EmployerApplicationController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => ApplicationResource::collection($applications),
+            'data'    => ApplicationResource::collection($applications->items()),
+            'meta'    => [
+                'current_page' => $applications->currentPage(),
+                'last_page'    => $applications->lastPage(),
+                'total'        => $applications->total(),
+                'per_page'     => $applications->perPage(),
+            ],
         ]);
     }
 
@@ -78,9 +91,7 @@ class EmployerApplicationController extends Controller
             abort(404);
         }
 
-        $fullPath = Storage::disk('public')->path($path);
-
-        return response()->file($fullPath, [
+        return Storage::disk('public')->response($path, basename($path), [
             'Content-Disposition' => 'inline; filename="'.basename($path).'"',
         ]);
     }

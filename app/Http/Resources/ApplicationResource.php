@@ -26,6 +26,7 @@ class ApplicationResource extends JsonResource
                     'first_name' => $this->jobseeker->first_name,
                     'last_name' => $this->jobseeker->last_name,
                     'full_name' => $this->jobseeker->fullName(),
+                    'photo' => $this->jobseeker->photo ? (str_starts_with($this->jobseeker->photo, 'http') ? $this->jobseeker->photo : asset('storage/' . $this->jobseeker->photo)) : null,
                     'email' => $this->jobseeker->email,
                     'address' => $this->jobseeker->address,
                     'contact' => $this->jobseeker->contact,

@@ -3,12 +3,13 @@
 namespace App\Support;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 final class PublicStorageUrl
 {
     /**
-     * URL for a public-disk path (served under /storage/...).
-     * Uses the incoming request host so links match the API (e.g. :8000) when APP_URL is wrong.
+     * URL for a public-disk path.
+     * Uses Laravel's Storage::url() which picks up the correct URL from the default disk (e.g., S3/R2).
      */
     public static function fromRequest(Request $request, ?string $stored): ?string
     {
@@ -19,14 +20,15 @@ final class PublicStorageUrl
         $stored = str_replace('\\', '/', trim($stored));
 
         if (preg_match('#^https?://#i', $stored)) {
-            $path = parse_url($stored, PHP_URL_PATH);
-            if (is_string($path) && str_starts_with($path, '/storage/')) {
-                return $request->getSchemeAndHttpHost().$path;
-            }
-
             return $stored;
         }
 
-        return $request->getSchemeAndHttpHost().'/storage/'.ltrim($stored, '/');
+        // Use the default disk (which we set to 's3' for R2)
+        try {
+            return Storage::url($stored);
+        } catch (\Exception $e) {
+            // Fallback to local-style if anything fails
+            return $request->getSchemeAndHttpHost().'/storage/'.ltrim($stored, '/');
+        }
     }
 }

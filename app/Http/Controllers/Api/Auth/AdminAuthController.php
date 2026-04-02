@@ -180,14 +180,16 @@ class AdminAuthController extends Controller
 
         // Delete old stored photo if it exists
         if ($user->photo) {
-            $oldPath = str_replace(asset('storage/'), '', $user->photo);
+            // Extract the path from the URL if it contains the disk URL
+            $diskUrl = Storage::disk('public')->url('');
+            $oldPath = str_replace($diskUrl, '', $user->photo);
             if (Storage::disk('public')->exists($oldPath)) {
                 Storage::disk('public')->delete($oldPath);
             }
         }
 
         $path = $request->file('photo')->store('profile-photos', 'public');
-        $url  = asset('storage/' . $path);
+        $url  = Storage::disk('public')->url($path);
 
         $user->update(['photo' => $url]);
 

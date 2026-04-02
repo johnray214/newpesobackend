@@ -19,7 +19,8 @@ class AdminApplicationController extends Controller
             $search = $request->search;
             $query->whereHas('jobseeker', function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%");
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$search}%"]);
             });
         }
         
@@ -33,6 +34,25 @@ class AdminApplicationController extends Controller
         
         if ($request->has('jobseeker_id')) {
             $query->where('jobseeker_id', $request->jobseeker_id);
+        }
+
+        if ($request->has('skill') && $request->skill !== '') {
+            $skill = $request->skill;
+            $query->whereHas('jobseeker.skills', function ($q) use ($skill) {
+                $q->where('skill', 'like', "%{$skill}%");
+            });
+        }
+
+        if ($request->has('date_from') && $request->date_from !== '') {
+            $dateFrom = match($request->date_from) {
+                'today' => now()->startOfDay(),
+                'week'  => now()->startOfWeek(),
+                'month' => now()->startOfMonth(),
+                default => null,
+            };
+            if ($dateFrom) {
+                $query->where('applied_at', '>=', $dateFrom);
+            }
         }
 
         $applications = $query->with(['jobseeker.skills', 'jobListing.employer'])

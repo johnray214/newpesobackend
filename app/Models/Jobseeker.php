@@ -48,6 +48,7 @@ class Jobseeker extends Authenticatable
         'longitude',
         'is_onboarding_done',
         'has_received_satisfaction_survey',
+        'fcm_token',
         'status',
     ];
 

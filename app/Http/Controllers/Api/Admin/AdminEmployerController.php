@@ -27,6 +27,10 @@ class AdminEmployerController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->has('industry') && $request->industry !== '') {
+            $query->where('industry', $request->industry);
+        }
+
         // Eager load job listings with counts and hired applicants
         $query->with([
             'jobListings.skills',

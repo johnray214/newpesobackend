@@ -277,7 +277,7 @@ class JobseekerProfileController extends Controller
             return response()->noContent();
         }
 
-        return response()->file(Storage::disk('public')->path($path));
+        return Storage::disk('public')->response($path);
     }
 
     /**
@@ -305,9 +305,7 @@ class JobseekerProfileController extends Controller
             abort(404);
         }
 
-        $fullPath = Storage::disk('public')->path($path);
-
-        return response()->file($fullPath, [
+        return Storage::disk('public')->response($path, basename($path), [
             'Content-Disposition' => 'inline; filename="'.basename($path).'"',
         ]);
     }
@@ -330,6 +328,21 @@ class JobseekerProfileController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Satisfaction rating submitted successfully',
+        ]);
+    }
+
+    public function saveFcmToken(Request $request)
+    {
+        $request->validate([
+            'fcm_token' => 'required|string',
+        ]);
+
+        $jobseeker = $request->user();
+        $jobseeker->update(['fcm_token' => $request->fcm_token]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'FCM token saved successfully',
         ]);
     }
 }

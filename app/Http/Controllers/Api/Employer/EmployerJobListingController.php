@@ -67,8 +67,13 @@ class EmployerJobListingController extends Controller
         }
 
         $len = max(mb_strlen($inputLower), 1);
-        $distanceThreshold = $len <= 5 ? 1 : ($len <= 10 ? 2 : 3);
-        $isCloseEnough = $best !== null && ($bestDist <= $distanceThreshold || $bestPct >= 88.0);
+        
+        if ($len <= 5) {
+            $isCloseEnough = $best !== null && $bestPct >= 95.0;
+        } else {
+            $distanceThreshold = $len <= 10 ? 2 : 3;
+            $isCloseEnough = $best !== null && ($bestDist <= $distanceThreshold || $bestPct >= 88.0);
+        }
 
         if ($isCloseEnough) {
             return $best;

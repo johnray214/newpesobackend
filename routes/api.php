@@ -272,6 +272,7 @@ Route::middleware(['auth:jobseeker', \App\Http\Middleware\EnsureJobseeker::class
     
     // Satisfaction Rating
     Route::post('/satisfaction-rating', [JobseekerProfileController::class, 'submitSatisfactionRating']);
+    Route::post('/save-fcm-token', [JobseekerProfileController::class, 'saveFcmToken']);
 
     // Skills catalog for jobseekers (stores skill_id selections)
     Route::get('/skills', [JobseekerSkillsController::class, 'index']);
