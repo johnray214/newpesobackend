@@ -28,18 +28,42 @@ class FcmService
         $token = $jobseeker->fcm_token;
         
         try {
-            $serviceAccount = storage_path('app/firebase-auth.json');
-            if (!file_exists($serviceAccount)) {
-                Log::error("FCM Error: firebase-auth.json file is MISSING at: " . $serviceAccount);
+            $jsonContent = env('FIREBASE_AUTH_JSON');
+            $credentialsData = null;
+            $projectId = null;
+
+            if ($jsonContent) {
+                // Priority 1: Railway Secrets
+                $credentialsData = json_decode($jsonContent, true);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    Log::error("FCM Error: FIREBASE_AUTH_JSON environment variable is not valid JSON.");
+                    return false;
+                }
+                $projectId = $credentialsData['project_id'] ?? null;
+            } else {
+                // Priority 2: Local storage file
+                $serviceAccountPath = storage_path('app/firebase-auth.json');
+                if (!file_exists($serviceAccountPath)) {
+                    Log::error("FCM Error: No Firebase secret found in Env or storage/app/.");
+                    return false;
+                }
+                $credentialsData = $serviceAccountPath;
+                
+                // Get project_id for Local File
+                $fileContent = json_decode(file_get_contents($serviceAccountPath), true);
+                $projectId = $fileContent['project_id'] ?? null;
+            }
+
+            if (!$projectId) {
+                Log::error("FCM Error: Project ID could not be determined from credentials.");
                 return false;
             }
 
             $credentials = new ServiceAccountCredentials(
                 'https://www.googleapis.com/auth/cloud-platform',
-                $serviceAccount
+                $credentialsData
             );
 
-            $projectId = json_decode(file_get_contents($serviceAccount))->project_id;
             $accessToken = $credentials->fetchAuthToken()['access_token'];
 
             $url = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send";
